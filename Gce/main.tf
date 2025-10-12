@@ -19,7 +19,3 @@ module "vm" {
   disk_type             = var.disk_type
   vm_count              = var.vm_count
 }
-
-# If integrating with previous modules, you could reference outputs like:
-# network    = module.network.vpc_name
-# subnetwork = module.network.subnet_name
