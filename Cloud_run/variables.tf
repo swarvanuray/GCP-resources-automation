@@ -27,11 +27,7 @@ variable "traffic" {
   default = [
     {
       revision_name = "run-app-from-tf-vqn2c"
-      percent       = 50
-    },
-    {
-      revision_name = "run-app-from-tf-pkt92"
-      percent       = 50
+      percent       = 100
     }
   ]
 }
