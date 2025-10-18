@@ -1,32 +1,38 @@
 # modules/vm/main.tf
 
 resource "google_compute_instance" "vm" {
-  count                     = var.vm_count
-  name                      = "${var.vm_name}-${format("%02d", count.index + 1)}"
-  zone                      = var.zone
-  machine_type              = var.machine_type
+  for_each                  = var.vms
+  name                      = each.key
+  zone                      = each.value.zone
+  machine_type              = each.value.machine_type
   allow_stopping_for_update = true
 
   network_interface {
-    network    = var.network
-    subnetwork = var.subnetwork
+    network    = each.value.network
+    subnetwork = each.value.subnetwork
   }
 
   boot_disk {
     initialize_params {
-      image = var.image
-      size  = var.boot_disk_size
+      image = each.value.image
+      size  = each.value.boot_disk_size
     }
     auto_delete = false
   }
 
-  labels = var.labels
+  labels = each.value.labels
 
   scheduling {
-    preemptible       = var.preemptible
-    automatic_restart = var.automatic_restart
+    preemptible       = each.value.preemptible
+    automatic_restart = each.value.automatic_restart
   }
-    lifecycle {
+
+ # service_account {
+   # email  = each.value.service_account_email
+    #scopes = each.value.scopes
+  #}
+
+  lifecycle {
     ignore_changes = [
       attached_disk
     ]
@@ -34,15 +40,15 @@ resource "google_compute_instance" "vm" {
 }
 
 resource "google_compute_disk" "disk" {
-  count = var.vm_count
-  name  = "${var.disk_name}-${format("%02d", count.index + 1)}"
-  size  = var.disk_size
-  zone  = var.zone
-  type  = var.disk_type
+  for_each = var.vms
+  name     = "${each.key}-disk"
+  size     = each.value.disk_size
+  zone     = each.value.zone
+  type     = each.value.disk_type
 }
 
 resource "google_compute_attached_disk" "attached_disk" {
-  count    = var.vm_count
-  disk     = google_compute_disk.disk[count.index].id
-  instance = google_compute_instance.vm[count.index].id
+  for_each = var.vms
+  disk     = google_compute_disk.disk[each.key].id
+  instance = google_compute_instance.vm[each.key].id
 }
